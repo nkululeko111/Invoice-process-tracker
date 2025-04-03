@@ -1,0 +1,480 @@
+:root {
+    --primary: #6c5ce7;
+    --secondary: #a29bfe;
+    --success: #00b894;
+    --danger: #d63031;
+    --warning: #fdcb6e;
+    --text: #2d3436;
+    --bg: #f9f9f9;
+    --card-bg: #ffffff;
+    --border: #e0e0e0;
+  }
+
+  .dark-mode {
+    --text: #f5f6fa;
+    --bg: #1e1e1e;
+    --card-bg: #2d2d2d;
+    --border: #444;
+  }
+
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    transition: all 0.3s ease;
+  }
+
+  .dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    color: var(--primary);
+    font-size: 2.5rem;
+    margin: 0;
+  }
+
+  h1 span {
+    background: linear-gradient(45deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .header-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+
+  .stat-card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 15px 20px;
+    flex: 1;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+
+  .stat-card.total { border-top: 5px solid var(--success); }
+  .stat-card.pending { border-top: 5px solid var(--warning); }
+  .stat-card.suppliers { border-top: 5px solid var(--secondary); }
+
+  .stat-card span {
+    display: block;
+    color: #666;
+    font-size: 0.9rem;
+  }
+
+  .stat-card strong {
+    font-size: 1.8rem;
+    color: var(--text);
+  }
+
+  .main-content {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+  }
+
+  .form-section, .data-section {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border);
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-size: 1rem;
+    background: var(--card-bg);
+    color: var(--text);
+    transition: all 0.2s ease;
+  }
+
+  .submit-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    margin-top: 10px;
+    transition: background 0.3s;
+  }
+
+  .submit-btn:hover {
+    background: var(--secondary);
+  }
+
+  .file-upload {
+    margin-top: 30px;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 5px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .drop-zone:hover {
+    border-color: var(--primary);
+    background: rgba(108, 92, 231, 0.05);
+  }
+
+  .progress-bar {
+    margin-top: 10px;
+    height: 10px;
+    background: #eee;
+    border-radius: 5px;
+    overflow: hidden;
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .progress {
+    height: 100%;
+    background: var(--primary);
+    width: 0%;
+    transition: width 0.3s;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  }
+
+  #progressText {
+    font-size: 0.8rem;
+    color: var(--text);
+  }
+
+  .invoice-table {
+    margin-top: 20px;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    background: var(--card-bg);
+    font-weight: 600;
+  }
+
+  tr:hover {
+    background: rgba(108, 92, 231, 0.05);
+  }
+
+  .status {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+
+  .status.pending {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  .status.paid {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--danger);
+  }
+
+  .data-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  #searchInput {
+    flex: 1;
+  }
+
+  .export-btn {
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .chart-container {
+    margin-top: 30px;
+    height: 300px;
+  }
+
+  .notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--success);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: none;
+    z-index: 1000;
+  }
+
+  .notification.error {
+    background: var(--danger);
+  }
+
+  .badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    background: var(--warning);
+    color: var(--text);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  #darkModeToggle {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  @media (max-width: 768px) {
+    .main-content {
+      grid-template-columns: 1fr;
+    }
+    
+    .stats {
+      flex-direction: column;
+    }
+  }
+
+  /* Form Section Specific Styles */
+.form-section {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .form-section h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    color: var(--primary);
+  }
+  
+  .form-group {
+    margin-bottom: 18px;
+    position: relative;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 1rem;
+    background: var(--card-bg);
+    color: var(--text);
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+  }
+  
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
+  }
+  
+  .submit-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    margin-top: 20px;
+    transition: all 0.3s;
+    font-size: 1rem;
+  }
+  
+  .submit-btn:hover {
+    background: var(--secondary);
+    transform: translateY(-2px);
+  }
+  
+  /* File Upload Section */
+  .file-upload {
+    margin-top: 30px;
+    border-top: 1px solid var(--border);
+    padding-top: 25px;
+  }
+  
+  .file-upload h3 {
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    color: var(--primary);
+  }
+  
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 15px;
+  }
+  
+  .drop-zone p {
+    margin: 0;
+    color: var(--text);
+  }
+  
+  .drop-zone:hover {
+    border-color: var(--primary);
+    background: rgba(108, 92, 231, 0.05);
+  }
+  
+  #fileInput {
+    display: none;
+  }
+  
+  /* Progress Bar */
+  .progress-bar {
+    margin-top: 15px;
+    height: 12px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .progress {
+    height: 100%;
+    background: var(--primary);
+    width: 0%;
+    transition: width 0.3s;
+  }
+  
+  #progressText {
+    font-size: 0.8rem;
+    color: var(--text);
+    margin-left: 10px;
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .form-section {
+      padding: 20px;
+      max-height: none;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group input,
+    .form-group select {
+      padding: 10px;
+    }
+    
+    .submit-btn {
+      padding: 12px;
+    }
+    
+    .drop-zone {
+      padding: 20px;
+    }
+  }
