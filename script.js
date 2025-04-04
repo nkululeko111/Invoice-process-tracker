@@ -97,52 +97,69 @@
     
     processInvoiceWithOCR(file);
   }
-
-  // 🖼️ Real OCR Processing
   async function processInvoiceWithOCR(file) {
-    showProgress(0, "Initializing OCR...");
-    
-    try {
-      const { data: { text } } = await Tesseract.recognize(
-        file,
-        'eng',
-        {
-          logger: progress => {
-            showProgress(Math.floor(progress.progress * 100), "Extracting text...");
-          }
-        }
-      );
-      
-      showProgress(100, "Extraction complete!");
-      const extractedData = parseExtractedText(text);
-      autoFillForm(extractedData);
-      
-      // Award OCR badge
-      if (!badges.ocrMaster.earned) {
-        awardBadge('ocrMaster');
-      }
-      
-    } catch (error) {
-      showNotification("OCR failed: " + error.message, "error");
+    if (!file.type.startsWith("image/")) {
+        showNotification("Only image files are supported!", "error");
+        return;
     }
-  }
 
-  function parseExtractedText(text) {
-    console.log("Extracted text:", text);
-    
-    // Improved regex patterns for invoice data
-    const amountMatch = text.match(/(Total|Amount Due|Balance).*?(\d{1,3}(?:,\d{3})*\.\d{2})/i);
-    const dateMatch = text.match(/(Date|Invoice Date).*?(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i);
-    const invoiceMatch = text.match(/(Invoice #|Number).*?([A-Z]{0,3}\d{5,10})/i);
-    const supplierMatch = text.match(/^(.*?)\n|(From|Supplier).*?\n(.*?)\n/i);
-    
+    showProgress(0, "Initializing OCR...");
+
+    try {
+        dropZone.innerHTML = '<p>Processing invoice... <span class="spinner">⏳</span></p>';
+
+        const result = await Tesseract.recognize(file, 'eng', {
+            logger: progress => {
+                if (progress.status === "recognizing text") {
+                    const percentage = Math.floor((progress.progress || 0) * 100);
+                    showProgress(percentage, `Processing: ${percentage}%`);
+                }
+            }
+        });
+
+        if (!result || !result.data || !result.data.text) {
+            throw new Error("No text extracted. Try a clearer image.");
+        }
+
+        showProgress(100, "Extraction complete!");
+        console.log("Extracted Text:", result.data.text);
+
+        const extractedData = parseExtractedText(result.data.text);
+        autoFillForm(extractedData);
+
+        if (!badges.ocrMaster.earned) {
+            awardBadge("ocrMaster");
+        }
+
+        dropZone.innerHTML = '<p>Drag & drop or click to upload</p>';
+
+    } catch (error) {
+        console.error("OCR Error:", error);
+        showNotification(`OCR failed: ${error.message || "Unable to process document"}`, "error");
+        showProgress(0, "");
+        dropZone.innerHTML = '<p>Drag & drop or click to try again</p>';
+    }
+}
+
+function parseExtractedText(text) {
+    console.log("Raw OCR Text:", text);
+
+    const amountMatch = text.match(/(?:Total|Amount Due|Balance)\s*[:$]?\s*(\d{1,3}(?:,\d{3})*\.\d{2})/i);
+    const dateMatch = text.match(/(?:Date|Invoice Date)\s*[:$]?\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i);
+    const invoiceMatch = text.match(/(?:Invoice #|Number)\s*[:$]?\s*([A-Z]{0,3}\d{5,10})/i);
+    const supplierMatch = text.match(/(?:From|Supplier|Billed To)\s*[:$]?\s*([\w\s&]+)/i);
+
     return {
-      amount: amountMatch ? amountMatch[2].replace(/,/g, '') : "",
-      date: dateMatch ? formatOCRDate(dateMatch[2]) : new Date().toISOString().split('T')[0],
-      invoiceNumber: invoiceMatch ? invoiceMatch[2] : "INV-" + Math.floor(Math.random() * 10000),
-      supplier: supplierMatch ? (supplierMatch[1] || supplierMatch[3]) : "Unknown Supplier"
+        amount: amountMatch ? amountMatch[1].replace(/,/g, '') : "",
+        date: dateMatch ? formatOCRDate(dateMatch[1]) : new Date().toISOString().split('T')[0],
+        invoiceNumber: invoiceMatch ? invoiceMatch[1] : "INV-" + Math.floor(Math.random() * 10000),
+        supplier: supplierMatch ? supplierMatch[1].trim() : "Unknown Supplier"
     };
-  }
+}
+
+
+
+  
 
   function formatOCRDate(dateStr) {
     // Handle different date formats (MM/DD/YYYY, DD-MM-YYYY, etc.)
