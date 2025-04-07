@@ -111,7 +111,7 @@ async function processPDFWithOCR(file) {
     
     // Load PDF.js
     const pdfjsLib = window['pdfjs-dist/build/pdf'];
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js';
     
     const arrayBuffer = await file.arrayBuffer();
     const loadingTask = pdfjsLib.getDocument(arrayBuffer);
