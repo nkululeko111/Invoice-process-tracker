@@ -191,24 +191,94 @@ async function processInvoiceWithOCR(file) {
 function parseExtractedText(text) {
   console.log("Raw OCR Text:", text);
 
-  // Improved regex patterns to handle different invoice formats
-  const amountMatch = text.match(/(?:Total|Amount Due|Balance|Amount)\s*[:$]?\s*[A-Z]?(\d{1,3}(?:[ ,]\d{3})*\.\d{2})/i);
-  const vatMatch = text.match(/(?:VAT|Tax)\s*(?:Amount)?\s*[:$]?\s*[A-Z]?(\d{1,3}(?:[ ,]\d{3})*\.\d{2})/i);
-  const dateMatch = text.match(/(?:Date|Invoice Date)\s*[:]?\s*(\d{4}-\d{2}-\d{2}|\d{2}[\/\-]\d{2}[\/\-]\d{2,4})/i);
-  const invoiceMatch = text.match(/(?:Invoice\s*#|Number|Invoice Number)\s*[:]?\s*([A-Z]{0,3}\d{5,10}|[A-Z]{2,}-\d{4,})/i);
-  const trackingMatch = text.match(/(?:Tracking\s*#|Tracking Number)\s*[:]?\s*([A-Z]{2,3}-\d{6,9})/i);
-  const supplierMatch = text.match(/(?:From|Supplier|Billed To|Business Name)\s*[:]?\s*([\w\s&\.]+(?:\s*(?:Ltd|Pty|Inc|LLC))?)/i);
-  const contactMatch = text.match(/(?:Contact|Phone|Email)\s*[:]?\s*([+\d\s\-\(\)]+|[^\s@]+@[^\s@]+\.[^\s@]+)/i);
-
-  return {
-    amount: amountMatch ? amountMatch[1].replace(/[ ,]/g, '') : "",
-    vat: vatMatch ? vatMatch[1].replace(/[ ,]/g, '') : "",
-    date: dateMatch ? formatOCRDate(dateMatch[1]) : new Date().toISOString().split('T')[0],
-    invoiceNumber: invoiceMatch ? invoiceMatch[1] : "INV-" + Math.floor(Math.random() * 10000),
-    trackingNumber: trackingMatch ? trackingMatch[1] : "",
-    supplier: supplierMatch ? supplierMatch[1].trim() : "Unknown Supplier",
-    contact: contactMatch ? contactMatch[1].trim() : ""
+  // Improved patterns for each field
+  const patterns = {
+    // Amount (should exclude VAT amounts)
+    amount: [
+      /^(?!.*(?:VAT|Tax|GST)).*Amount\s*[:$]?\s*[A-Z]?\s*(\d{1,3}(?:[ ,]?\d{3})*\.\d{2})/im,
+      /^(?!.*(?:VAT|Tax|GST)).*Total\s*[:$]?\s*[A-Z]?\s*(\d{1,3}(?:[ ,]?\d{3})*\.\d{2})/im
+    ],
+        
+    // VAT/Tax amount (should be separate from total amount)
+    vat: [
+      /(?:VAT|Tax|GST)\s*(?:Amount)?\s*[:$]?\s*[A-Z]?\s*(\d{1,3}(?:[ ,]\d{3})*\.\d{2})/i,
+      /(?:^|\n)\s*(?:VAT|Tax|GST)\s+[A-Z]?\s*(\d{1,3}(?:[ ,]\d{3})*\.\d{2})/i
+    ],
+    // Date (multiple formats)
+    date: [
+      /(?:Date|Invoice Date)\s*[:]?\s*(\d{4}-\d{2}-\d{2}|\d{2}[\/\-]\d{2}[\/\-]\d{2,4})/i,
+      /(?:^|\n)\s*Date\s+(\d{4}-\d{2}-\d{2}|\d{2}[\/\-]\d{2}[\/\-]\d{2,4})/i
+    ],
+    // Invoice number
+    invoiceNumber: [
+      /(?:Invoice\s*#|Number|Invoice Number|PO Number)\s*[:]?\s*([A-Z]{0,3}\d{5,10}|[A-Z]{2,}-\d{4,})/i,
+      /(?:^|\n)\s*Invoice\s+#\s+([A-Z]{0,3}\d{5,10})/i
+    ],
+    // Tracking number
+    trackingNumber: [
+      /(?:Tracking\s*#|Tracking Number|Ref No\.?)\s*[:]?\s*([A-Z]{2,3}[-\s]?\d{6,9})/i,
+      /(?:^|\n)\s*Tracking\s+#\s+([A-Z]{2,3}[-\s]?\d{6,9})/i
+    ],
+    // Supplier name
+    supplier: [
+      /(?:From|Supplier|Billed To|Business Name|Vendor)\s*[:]?\s*([\w\s&\.\-']+(?:\s*(?:Ltd|Pty|Inc|LLC|GmbH))?)/i,
+      /(?:^|\n)\s*Supplier\s+([\w\s&\.\-']+)/i
+    ],
+    // Contact info (email or phone)
+    contact: [
+      /(?:Contact|Phone|Tel|Email)\s*[:]?\s*([+\d\s\-\(\)]{8,}|[^\s@]+@[^\s@]+\.[^\s@]{2,})/i,
+      /(?:^|\n)\s*(?:Phone|Email)\s+([+\d\s\-\(\)]{8,}|[^\s@]+@[^\s@]+\.[^\s@]{2,})/i,
+      /(?:Customer Service|Support)\s*[:]?\s*([+\d\s\-\(\)]{8,}|[^\s@]+@[^\s@]+\.[^\s@]{2,})/i
+    ]
   };
+
+  // Try each pattern in order until we find a match
+  const extractField = (field) => {
+    for (const pattern of patterns[field]) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        // Special cleaning for each field
+        switch(field) {
+          case 'amount':
+          case 'vat':
+            return match[1].replace(/[ ,]/g, '');
+          case 'date':
+            return formatOCRDate(match[1]);
+          case 'contact':
+            return match[1].trim().replace(/\s{2,}/g, ' ');
+          default:
+            return match[1].trim();
+        }
+      }
+    }
+    return "";
+  };
+
+  // Extract all fields
+  const extractedData = {
+    vat: extractField('vat'),
+    amount: extractField('amount'),
+    date: extractField('date') || new Date().toISOString().split('T')[0],
+    invoiceNumber: extractField('invoiceNumber') || "INV-" + Math.floor(Math.random() * 10000),
+    trackingNumber: extractField('trackingNumber'),
+    supplier: extractField('supplier') || "Unknown Supplier",
+    contact: extractField('contact')
+  };
+
+  // Special handling for amount/VAT relationship
+  if (extractedData.amount && extractedData.vat) {
+    // Sometimes VAT is included in the total amount - we should subtract it
+    const amount = parseFloat(extractedData.amount);
+    const vat = parseFloat(extractedData.vat);
+    
+    // If VAT seems to be part of the total (common pattern)
+    if (amount > vat && text.match(/inclusive|incl\.?|includes VAT/i)) {
+      extractedData.amount = (amount - vat).toFixed(2);
+    }
+  }
+
+  console.log("Extracted Data:", extractedData);
+  return extractedData;
 }
 
 function formatOCRDate(dateStr) {
